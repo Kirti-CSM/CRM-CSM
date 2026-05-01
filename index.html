@@ -588,8 +588,95 @@ function startRealtime(){
   ws.onclose = () => setTimeout(startRealtime, 4000);
 }
 
-// Boot: load existing edits from cloud, then start realtime
-loadEdits().then(() => startRealtime());
+// ── SOURCE FILES SYNC (4 uploaded files persist in Supabase too) ────
+async function uploadFileToCloud(fileKey, file){
+  try{
+    setStatus('☁️ Saving ' + file.name + ' to cloud...');
+    // Convert file to base64
+    const b64 = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result.split(',')[1]); // strip data:...;base64,
+      r.onerror = () => rej(new Error('read failed'));
+      r.readAsDataURL(file);
+    });
+    const r = await fetch(`${SUPA_URL}/rest/v1/source_files?on_conflict=file_key`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPA_KEY,
+        Authorization: `Bearer ${SUPA_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify({
+        file_key: fileKey,
+        filename: file.name,
+        data: b64,
+        uploaded_by: whoami(),
+        uploaded_at: new Date().toISOString()
+      })
+    });
+    if(!r.ok){
+      const t = await r.text();
+      throw new Error(r.status + ': ' + t);
+    }
+    setStatus('☁️ ' + file.name + ' saved to cloud');
+    flashSync(true);
+  }catch(err){
+    console.error('[CRM] cloud upload failed', err);
+    setStatus('⚠ Cloud save failed for ' + file.name);
+    flashSync(false, 'cloud upload failed');
+  }
+}
+
+async function autoLoadFiles(){
+  try{
+    setStatus('☁️ Loading data from cloud...');
+    const r = await fetch(`${SUPA_URL}/rest/v1/source_files?select=file_key,filename,data,uploaded_by,uploaded_at&order=uploaded_at.desc`, {
+      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+    });
+    if(!r.ok) throw new Error('fetch ' + r.status);
+    const rows = await r.json();
+    if(!rows || rows.length === 0){
+      setStatus('No data in cloud yet — please upload the 4 sync files');
+      return;
+    }
+    console.log('[CRM] found ' + rows.length + ' files in cloud');
+    const wanted = {};
+    rows.forEach(row => { if(!wanted[row.file_key]) wanted[row.file_key] = row; });
+    // Convert each base64 row back into a File object and stuff into _UPLOADS
+    for(const key of ['ds','plan','mis','care']){
+      const row = wanted[key];
+      if(!row) continue;
+      const bin = atob(row.data);
+      const bytes = new Uint8Array(bin.length);
+      for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const file = new File([bytes], row.filename || (key + '.xlsx'));
+      _UPLOADS[key] = file;
+      // Update the upload-button UI to show the file is loaded
+      const btn = document.getElementById('ubtn-' + key);
+      if(btn){
+        btn.classList.add('done');
+        const sub = btn.querySelector('.ubtn-sub');
+        if(sub) sub.textContent = '✓ ' + (row.filename || (key + '.xlsx')) + ' (cloud)';
+      }
+    }
+    const loaded = Object.values(_UPLOADS).filter(Boolean).length;
+    setStatus(loaded + '/4 files loaded from cloud — ' + (loaded===4 ? 'processing...' : 'upload remaining'));
+    if(loaded === 4) await processAllFiles();
+  }catch(err){
+    console.error('[CRM] auto-load failed', err);
+    setStatus('⚠ Cloud load failed — please upload files manually');
+  }
+}
+
+// Boot order:
+// 1. Load CSM edits from cloud
+// 2. Start realtime sync
+// 3. Auto-load the 4 source files from cloud (then process them)
+loadEdits().then(() => {
+  startRealtime();
+  autoLoadFiles();
+});
 
 // ── DOWNLOAD DATABASE AS EXCEL ──────────────────────────────
 function downloadDatabase(){
@@ -1004,6 +1091,8 @@ function handleFile(key, input){
   btn.querySelector('.ubtn-sub').textContent = '✓ ' + file.name;
   _UPLOADS[key] = file;
   setStatus('📂 ' + file.name + ' ready');
+  // Save the file to Supabase so other CSMs/devices auto-load it
+  uploadFileToCloud(key, file);
   // Check if all 4 uploaded
   const done = Object.values(_UPLOADS).filter(Boolean).length;
   setStatus(`${done}/4 files loaded — ${done===4?'ready to sync!':'upload remaining files'}`);
