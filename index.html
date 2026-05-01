@@ -1304,7 +1304,9 @@ function mergeData(dsData, planData, misData, careData){
   const dsByPhone = {};
   dsSheet.forEach(row => {
     const status = String(row['status']||'').toLowerCase();
-    if(status !== 'completed') return;
+    // Include completed (past calls done) AND confirmed (upcoming today/future)
+    // Skip only canceled and noshow
+    if(status !== 'completed' && status !== 'confirmed') return;
     const ph = cleanPhone(row['invitee_phone']||row['Phone']||'');
     if(!ph) return;
     if(!dsByPhone[ph]) dsByPhone[ph] = [];
@@ -1313,7 +1315,7 @@ function mergeData(dsData, planData, misData, careData){
     const cat = low.includes('welcome')||low.includes('onboarding')||low.includes('dedicated') ? 'Welcome Call'
               : low.includes('cgm')||low.includes('installation') ? 'CGM Installation' : 'Other';
     dsByPhone[ph].push({
-      category: cat, status: 'completed',
+      category: cat, status: status,
       date: String(row['start_at']||'').slice(0,10),
       rmName: String(row['staff_name']||'').trim(),
       phone: ph,
