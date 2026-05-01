@@ -784,9 +784,10 @@ const _UPLOADS = {ds:false, plan:false, mis:false, care:false};
 function toggleUpanel(){
   document.getElementById('upanel').classList.toggle('on');
 }
-function triggerUpload(key){
-  event.preventDefault();
-  document.getElementById('file-'+key).click();
+function triggerUpload(key, ev){
+  // The <label> wrapping the file input handles the click natively.
+  // We only need to stop event bubbling so it doesn't trigger twice.
+  if(ev) ev.stopPropagation();
 }
 
 function handleFile(key, input){
@@ -1099,7 +1100,7 @@ function mergeData(dsData, planData, misData, careData){
     <span class="upanel-close" onclick="toggleUpanel()">&#10005;</span>
   </div>
 
-  <label class="ubtn" id="ubtn-ds" onclick="triggerUpload('ds')">
+  <label class="ubtn" id="ubtn-ds" onclick="triggerUpload('ds', event)">
     <input type="file" id="file-ds" accept=".xlsx,.csv" onchange="handleFile('ds',this)">
     <span class="ubtn-icon">&#128197;</span>
     <span class="ubtn-txt">
@@ -1108,7 +1109,7 @@ function mergeData(dsData, planData, misData, careData){
     </span>
   </label>
 
-  <label class="ubtn" id="ubtn-plan" onclick="triggerUpload('plan')">
+  <label class="ubtn" id="ubtn-plan" onclick="triggerUpload('plan', event)">
     <input type="file" id="file-plan" accept=".xlsx" onchange="handleFile('plan',this)">
     <span class="ubtn-icon">&#128203;</span>
     <span class="ubtn-txt">
@@ -1117,7 +1118,7 @@ function mergeData(dsData, planData, misData, careData){
     </span>
   </label>
 
-  <label class="ubtn" id="ubtn-mis" onclick="triggerUpload('mis')">
+  <label class="ubtn" id="ubtn-mis" onclick="triggerUpload('mis', event)">
     <input type="file" id="file-mis" accept=".xlsx" onchange="handleFile('mis',this)">
     <span class="ubtn-icon">&#128202;</span>
     <span class="ubtn-txt">
@@ -1126,7 +1127,7 @@ function mergeData(dsData, planData, misData, careData){
     </span>
   </label>
 
-  <label class="ubtn" id="ubtn-care" onclick="triggerUpload('care')">
+  <label class="ubtn" id="ubtn-care" onclick="triggerUpload('care', event)">
     <input type="file" id="file-care" accept=".xlsx" onchange="handleFile('care',this)">
     <span class="ubtn-icon">&#129514;</span>
     <span class="ubtn-txt">
