@@ -1281,6 +1281,7 @@ function mergeData(dsData, planData, misData, careData){
   // Build MIS by phone
   const misSheet = misData['Main sheet '] || misData['Main sheet'] || Object.values(misData)[0] || [];
   const misByPhone = {};
+  // Process Main sheet first (has positional column layout)
   misSheet.forEach(row => {
     const vals = Object.values(row);
     const ph = cleanPhone(vals[5]); if(!ph) return;
@@ -1297,6 +1298,30 @@ function mergeData(dsData, planData, misData, careData){
       condition: String(vals[9]||'').trim(),
       dayInPlan: day,
     };
+  });
+  // Also process other MIS sheets (Smart CGM etc.) using named columns
+  Object.entries(misData).forEach(([sheetName, rows]) => {
+    if(sheetName === 'Main sheet ' || sheetName === 'Main sheet') return;
+    if(!Array.isArray(rows)) return;
+    rows.forEach(row => {
+      const ph = cleanPhone(row['Phone number']||row['Phone Number']||row['Phone']||row['phone']||row['Mobile']||'');
+      if(!ph) return;
+      // Don't overwrite if already set from Main sheet
+      if(misByPhone[ph]) return;
+      let day = 0;
+      try {
+        const pd = row['Payment date '] || row['Payment date'] || row['Plan Start Date'];
+        if(pd instanceof Date) day = Math.floor((Date.now()-pd.getTime())/86400000);
+      } catch(e){}
+      misByPhone[ph] = {
+        name: String(row['Patinet Name']||row['Patient Name']||row['Name']||'').trim(),
+        team: String(row['Team']||'').trim().replace(/^IS$/i,'Inside Sales'),
+        ops_poc: String(row['OPS POC']||row['POC']||'').trim(),
+        plan: String(row['Plan Name']||row['Plan']||'').trim(),
+        condition: String(row['Conditiom']||row['Condition']||row['Disease']||'').trim(),
+        dayInPlan: day,
+      };
+    });
   });
 
   // Build DS by phone
@@ -1319,6 +1344,8 @@ function mergeData(dsData, planData, misData, careData){
       date: String(row['start_at']||'').slice(0,10),
       rmName: String(row['staff_name']||'').trim(),
       phone: ph,
+      // Fallback name from DaySchedule for new leads not yet in MIS/Plan
+      patName: String(row['invitee_name']||'').trim()
     });
   });
 
@@ -1333,10 +1360,13 @@ function mergeData(dsData, planData, misData, careData){
     const coach = coachByPhone[phone] || {};
     const bks   = dsByPhone[phone]    || [];
     const sess  = sessionsByPhone[phone] || {};
-    const wc    = bks.find(b=>b.category==='Welcome Call');
+    // Prefer completed WC; if none, use any (confirmed) WC
+    const wcCompleted = bks.find(b=>b.category==='Welcome Call' && b.status==='completed');
+    const wcAny       = bks.find(b=>b.category==='Welcome Call');
+    const wc          = wcCompleted || wcAny;
     const cgm   = bks.find(b=>b.category==='CGM Installation');
-    const wcs   = wc ? 'completed' : '';
-    const cgms  = cgm ? 'completed' : '';
+    const wcs   = wcCompleted ? 'completed' : (wcAny ? 'upcoming' : '');
+    const cgms  = cgm && cgm.status==='completed' ? 'completed' : '';
     const devs  = plan.devices||'';
     const di    = plan.diagIncluded||0;
     const du    = plan.diagUsed||0;
@@ -1356,7 +1386,7 @@ function mergeData(dsData, planData, misData, careData){
       program: '-', source: 'Uploaded',
       wcBooked: wcs ? 'Yes' : 'No',
       wcDate: wc ? wc.date : '-',
-      wcDone: wcs==='completed' ? 'Done' : 'Not Done',
+      wcDone: wcs==='completed' ? 'Done' : (wcs==='upcoming' ? 'Upcoming' : 'Not Done'),
       nutritionist: coach['Nutritionist']||'-',
       physiotherapist: coach['Physiotherapist']||'-',
       cbtCoach: coach['Psychologist']||coach['CBT']||'-',
