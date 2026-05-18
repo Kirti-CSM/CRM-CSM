@@ -202,6 +202,29 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
 .ubar.on{display:block}
 .ubar-fill{height:100%;background:var(--y);transition:width .3s;width:0}
 .ustatus{font-size:10px;color:var(--s);margin-top:5px;text-align:center;min-height:14px}
+
+/* ── DAILY ACTION QUEUE ─────────────────────────── */
+.aq-wrap{background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;margin:10px 14px 6px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.aq-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.aq-title{font-size:12px;font-weight:700;color:#1c2b4a;letter-spacing:.3px}
+.aq-count{background:#1c2b4a;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:2px 7px}
+.aq-refresh{margin-left:auto;background:none;border:1px solid #cbd5e1;border-radius:6px;font-size:10px;cursor:pointer;padding:3px 9px;color:#64748b}
+.aq-refresh:hover{background:#f1f5f9}
+.aq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.aq-card{border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 11px;cursor:pointer;transition:box-shadow .15s,border-color .15s;background:#fafafa}
+.aq-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.1);border-color:#94a3b8;background:#fff}
+.aq-card-top{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.aq-name{font-size:11px;font-weight:700;color:#1c2b4a;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aq-priority{font-size:9px;font-weight:700;border-radius:4px;padding:2px 6px;white-space:nowrap}
+.aq-p1{background:#fee2e2;color:#b91c1c}
+.aq-p2{background:#fef3c7;color:#b45309}
+.aq-p3{background:#e0f2fe;color:#0369a1}
+.aq-reason{font-size:10px;color:#475569;line-height:1.4}
+.aq-plan{font-size:9px;color:#94a3b8;margin-top:3px}
+.aq-empty{font-size:11px;color:#64748b;text-align:center;padding:18px;font-style:italic}
+.aq-collapsed .aq-grid{display:none}
+.aq-toggle{font-size:10px;color:#64748b;cursor:pointer;user-select:none;margin-left:6px}
+
 </style>
 </head>
 <body>
@@ -269,6 +292,21 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
         <div class="ss"><b style="color:var(--G)" id="st-bca">-</b> BCA</div>
       </div>
     </div>
+  </div>
+</div>
+
+
+<!-- DAILY ACTION QUEUE -->
+<div class="aq-wrap" id="aq-wrap">
+  <div class="aq-header">
+    <span>&#9888;&#65039;</span>
+    <span class="aq-title">TODAY'S ACTION QUEUE</span>
+    <span class="aq-count" id="aq-count">0</span>
+    <span class="aq-toggle" id="aq-toggle" onclick="aqToggle()">&#9660; hide</span>
+    <button class="aq-refresh" onclick="buildActionQueue()">&#8635; Refresh</button>
+  </div>
+  <div class="aq-grid" id="aq-grid">
+    <div class="aq-empty">Loading...</div>
   </div>
 </div>
 
@@ -1581,6 +1619,121 @@ setTimeout(()=>{
     }, {passive:true});
   }
 }, 500);
+
+// ── DAILY ACTION QUEUE ────────────────────────────────────────────
+function buildActionQueue(){
+  const today = new Date();
+  const flags = [];
+
+  ALL.forEach(p => {
+    const reasons = [];
+    let priority = 3;
+
+    // Rule 1: WC Booked but not done, date was >3 days ago
+    if(p.wc_booked === 'Yes' && p.wc_done !== 'Yes' && p.wc_status !== 'Done'){
+      if(p.wc_date){
+        const wcDate = new Date(p.wc_date);
+        const diffDays = Math.floor((today - wcDate) / 86400000);
+        if(diffDays >= 3){
+          reasons.push('WC booked ' + diffDays + ' days ago — not done yet');
+          priority = Math.min(priority, 1);
+        }
+      } else {
+        reasons.push('WC booked but no date recorded');
+        priority = Math.min(priority, 2);
+      }
+    }
+
+    // Rule 2: No WC booked at all and patient is Active
+    if(p.plan_status === 'Active' && (!p.wc_booked || p.wc_booked === 'No') && p.wc_status !== 'Done'){
+      reasons.push('Active patient — WC not booked yet');
+      priority = Math.min(priority, 2);
+    }
+
+    // Rule 3: WC Done but no coach assigned
+    if((p.wc_status === 'Done' || p.wc_done === 'Yes') && !p.nutritionist && !p.physiotherapist){
+      reasons.push('WC done — coach not assigned yet');
+      priority = Math.min(priority, 2);
+    }
+
+    // Rule 4: No Show on WC — needs reschedule
+    if(p.wc_status === 'No Show' || p.wc_done === 'No Show'){
+      reasons.push('WC was no-show — reschedule needed');
+      priority = Math.min(priority, 1);
+    }
+
+    // Rule 5: GLP patient (plan name contains Sema/GLP) — doctor consult check
+    const planName = (p.plan_name || '').toLowerCase();
+    if((planName.includes('sema') || planName.includes('glp') || planName.includes('ozempic'))){
+      if(!p.ns1 || p.ns1 !== 'Done'){
+        reasons.push('GLP patient — doctor consultation pending');
+        priority = Math.min(priority, 1);
+      }
+    }
+
+    // Rule 6: Coach assigned but session 1 not done after 7+ days
+    if(p.nutritionist && p.ns1 !== 'Done' && p.wc_date){
+      const wcDate = new Date(p.wc_date);
+      const diffDays = Math.floor((today - wcDate) / 86400000);
+      if(diffDays >= 7){
+        reasons.push('Coach assigned ' + diffDays + ' days ago — Session 1 not done');
+        priority = Math.min(priority, 2);
+      }
+    }
+
+    // Rule 7: Active patient, no follow-up note in a long time
+    if(p.plan_status === 'Active' && p.wc_status === 'Done'){
+      const lastNote = p.notes || p.follow_up_notes || '';
+      if(!lastNote || lastNote === '-'){
+        reasons.push('No follow-up notes recorded');
+        priority = Math.min(priority, 3);
+      }
+    }
+
+    if(reasons.length > 0){
+      flags.push({ p, reasons, priority });
+    }
+  });
+
+  // Sort by priority (1 = most urgent)
+  flags.sort((a,b) => a.priority - b.priority);
+
+  const grid = document.getElementById('aq-grid');
+  const countEl = document.getElementById('aq-count');
+  countEl.textContent = flags.length;
+  countEl.style.background = flags.length > 10 ? '#b91c1c' : flags.length > 5 ? '#b45309' : '#1c2b4a';
+
+  if(flags.length === 0){
+    grid.innerHTML = '<div class="aq-empty">&#10003; All clear — no urgent follow-ups today!</div>';
+    return;
+  }
+
+  grid.innerHTML = flags.slice(0, 20).map(({p, reasons, priority}) => {
+    const pClass = priority === 1 ? 'aq-p1' : priority === 2 ? 'aq-p2' : 'aq-p3';
+    const pLabel = priority === 1 ? '🔴 Urgent' : priority === 2 ? '🟡 Today' : '🔵 When free';
+    return `<div class="aq-card" onclick="openModal('${p.phone}')">
+      <div class="aq-card-top">
+        <span class="aq-name">${p.name || p.phone}</span>
+        <span class="aq-priority ${pClass}">${pLabel}</span>
+      </div>
+      <div class="aq-reason">${reasons[0]}</div>
+      ${reasons.length > 1 ? '<div class="aq-reason" style="color:#94a3b8;font-size:9px">+' + (reasons.length-1) + ' more flag'+(reasons.length>2?'s':'')+'</div>' : ''}
+      <div class="aq-plan">${p.plan_name || ''} ${p.rm_name ? '· RM: '+p.rm_name : ''}</div>
+    </div>`;
+  }).join('');
+
+  if(flags.length > 20){
+    grid.innerHTML += `<div class="aq-empty" style="font-style:normal;color:#1c2b4a;font-weight:600">+${flags.length - 20} more patients need attention — use filters to find them</div>`;
+  }
+}
+
+function aqToggle(){
+  const wrap = document.getElementById('aq-wrap');
+  const toggle = document.getElementById('aq-toggle');
+  wrap.classList.toggle('aq-collapsed');
+  toggle.textContent = wrap.classList.contains('aq-collapsed') ? '▶ show' : '▼ hide';
+}
+
 </script>
 </body>
 </html>
