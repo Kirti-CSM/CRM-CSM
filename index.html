@@ -985,6 +985,15 @@ function openMod(idx){
             value="${p.wc_date||''}"
             onchange="updateField(${idx},'wc_date',this.value);p.wc_date=this.value">
         </span></div>
+      <div class="mr"><span class="ml">WC Quality</span><span class="mv">
+        <select style="border:1px solid #e2e8f0;border-radius:4px;padding:3px 6px;font-size:11px;outline:none;
+          background:${(p.wc_quality||'')==='Strong'?'#E6F4F1':(p.wc_quality||'')==='Weak'?'#FFF0F0':'#FFF8E1'};
+          color:${(p.wc_quality||'')==='Strong'?'#0B6B5E':(p.wc_quality||'')==='Weak'?'#B91C1C':'#B45309'}"
+          onchange="updateField(${idx},'wc_quality',this.value);ALL[${idx}].wc_quality=this.value">
+          <option value="">— Rate WC —</option>
+          ${['Strong','Average','Weak'].map(q=>`<option value="${q}" ${(p.wc_quality||'')===q?'selected':''}>${q==='Strong'?'✅':q==='Average'?'🟡':'🔴'} ${q}</option>`).join('')}
+        </select>
+      </span></div>
 
       <div class="ms">Coaches</div>
       <div class="cg">
@@ -1675,17 +1684,50 @@ function buildActionQueue(){
     if(p.nutritionist && p.ns1 !== 'Done' && p.wc_date){
       const wcDate = new Date(p.wc_date);
       const diffDays = Math.floor((today - wcDate) / 86400000);
-      if(diffDays >= 7){
-        reasons.push('Coach assigned ' + diffDays + ' days ago — Session 1 not done');
-        priority = Math.min(priority, 2);
+      if(diffDays >= 5){
+        reasons.push('Coach assigned ' + diffDays + ' days ago — Session 1 not done (target: 7 days)');
+        priority = Math.min(priority, diffDays >= 7 ? 1 : 2);
       }
     }
 
-    // Rule 7: Active patient, no follow-up note in a long time
+    // Rule 7: Session 1 not done within 7 days of WC done
+    if((p.wc_status === 'Done' || p.wc_done === 'Yes') && !p.nutritionist && p.wc_date){
+      const wcDate = new Date(p.wc_date);
+      const diffDays = Math.floor((today - wcDate) / 86400000);
+      if(diffDays >= 5){
+        reasons.push('WC done ' + diffDays + ' days ago — no coach assigned yet');
+        priority = Math.min(priority, diffDays >= 7 ? 1 : 2);
+      }
+    }
+
+    // Rule 8: CHURN PREDICTION — 3 signals: no app login 5d + no WATI reply + no session
+    const wcDone = p.wc_status === 'Done' || p.wc_done === 'Yes';
+    const noSession = !p.ns1 || p.ns1 !== 'Done';
+    const noComment = !p.c1 || p.c1.trim() === '' || p.c1 === '-';
+    if(wcDone && noSession && noComment && p.wc_date){
+      const wcDate = new Date(p.wc_date);
+      const diffDays = Math.floor((today - wcDate) / 86400000);
+      if(diffDays >= 10){
+        reasons.push('🚨 CHURN RISK — WC done ' + diffDays + ' days ago, no session, no activity');
+        priority = 1;
+      }
+    }
+
+    // Rule 9: GLP patient — weekly AE check (7+ days since last comment)
+    const planName = (p.plan_name || '').toLowerCase();
+    if(planName.includes('sema') || planName.includes('glp') || planName.includes('ozempic')){
+      const noRecentComment = !p.c1 || p.c1.trim() === '';
+      if(noRecentComment && (p.wc_status === 'Done' || p.wc_done === 'Yes')){
+        reasons.push('GLP patient — weekly AE check overdue (no recent note)');
+        priority = Math.min(priority, 1);
+      }
+    }
+
+    // Rule 10: Active patient, no follow-up note
     if(p.plan_status === 'Active' && p.wc_status === 'Done'){
-      const lastNote = p.notes || p.follow_up_notes || '';
-      if(!lastNote || lastNote === '-'){
-        reasons.push('No follow-up notes recorded');
+      const lastNote = p.c1 || '';
+      if(!lastNote || lastNote.trim() === '-' || lastNote.trim() === ''){
+        reasons.push('Active patient — no follow-up note recorded');
         priority = Math.min(priority, 3);
       }
     }
@@ -1709,8 +1751,9 @@ function buildActionQueue(){
   }
 
   grid.innerHTML = flags.slice(0, 20).map(({p, reasons, priority}) => {
-    const pClass = priority === 1 ? 'aq-p1' : priority === 2 ? 'aq-p2' : 'aq-p3';
-    const pLabel = priority === 1 ? '🔴 Urgent' : priority === 2 ? '🟡 Today' : '🔵 When free';
+    const isChurn = reasons[0] && reasons[0].includes('CHURN RISK');
+    const pClass = isChurn ? 'aq-p1' : priority === 1 ? 'aq-p1' : priority === 2 ? 'aq-p2' : 'aq-p3';
+    const pLabel = isChurn ? '🚨 Churn Risk' : priority === 1 ? '🔴 Urgent' : priority === 2 ? '🟡 Today' : '🔵 When free';
     return `<div class="aq-card" onclick="openModal('${p.phone}')">
       <div class="aq-card-top">
         <span class="aq-name">${p.name || p.phone}</span>
