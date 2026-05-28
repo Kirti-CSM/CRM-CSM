@@ -544,6 +544,7 @@ function initData(base, edits){
   ALL.sort((a,b) => (a._row||0) - (b._row||0));
   buildRMMap(ALL);
   updateStats();
+  buildRMStrip();
   populateRMFilter();
   go();
 }
@@ -1128,6 +1129,7 @@ async function processUpload(){
     setProgress(95);
     buildRMMap(ALL);
     updateStats();
+    buildRMStrip();
     const today=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
     document.getElementById('sync-time').textContent='Synced '+today;
     setProgress(100);
@@ -1571,6 +1573,7 @@ _BASE.forEach((p, i) => { p._row = i; });
   ALL.sort((a,b) => (a._row||0) - (b._row||0));
     buildRMMap(ALL);
     updateStats();
+    buildRMStrip();
     populateRMFilter();
     go();
   } else {
