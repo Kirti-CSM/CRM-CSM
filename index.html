@@ -1755,7 +1755,7 @@ function switchTab(name, el){
 function buildManagerView(){
   if(!ALL || ALL.length===0) return;
   
-  const rmList = [...new Set(ALL.map(p=>getRM(p)).filter(Boolean))].sort();
+  const rmList = [...new Set(ALL.map(p=>getRM(p.phone)).filter(Boolean))].sort();
   
   // Summary stats
   const totalActive = ALL.filter(p=>p.plan_status==='Active').length;
@@ -1783,7 +1783,7 @@ function buildManagerView(){
   }
   
   tbody.innerHTML = rmList.map(rm=>{
-    const pts = ALL.filter(p=>getRM(p)===rm);
+    const pts = ALL.filter(p=>getRM(p.phone)===rm);
     const total = pts.length;
     const active = pts.filter(p=>p.plan_status==='Active').length;
     const wcBooked = pts.filter(p=>p.wc_booked==='Yes'||p.wc_booked==='yes').length;
