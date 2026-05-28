@@ -1662,7 +1662,7 @@ setTimeout(()=>{
 
 function patientSummary(p){
   const wcs = p.wc_status||p.wc_done||'';
-  const plan = (p.plan_name||'').toLowerCase();
+  const plan = (p.plan||p.plan_name||'').toLowerCase();
   const isGLP = plan.includes('sema')||plan.includes('glp')||plan.includes('semaglyn')||plan.includes('alterme')||plan.includes('mashema');
   
   if(wcs==='No Show'||wcs==='No show') return '<span class="sum-col sum-r">🔴 WC reschedule</span>';
@@ -1721,11 +1721,11 @@ function buildRMStrip(){
 
   // RM task strip
   const strip = document.getElementById('rm-task-strip');
-  const rmList = getRMs();
+  const rmList = [...new Set(ALL.map(p=>(p.assigned_rm||'').trim()).filter(Boolean))].sort();
   if(!rmList || rmList.length===0){ strip.style.display='none'; return; }
   
   const chips = rmList.map(rm=>{
-    const rmPatients = ALL.filter(p=>getRM(p)===rm);
+    const rmPatients = ALL.filter(p=>(p.assigned_rm||'').trim()===rm);
     const total = rmPatients.length;
     if(total===0) return '';
     const done = rmPatients.filter(p=>(p.wc_status==='Done'||p.wc_done==='Done')).length;
@@ -1741,6 +1741,87 @@ function buildRMStrip(){
   }
 }
 
+
+// ── TAB SWITCHING ─────────────────────────────────────────────
+function switchTab(name, el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('on'));
+  document.getElementById('tab-'+name).classList.add('on');
+  if(el) el.classList.add('on');
+  if(name==='manager') buildManagerView();
+}
+
+// ── MANAGER VIEW ──────────────────────────────────────────────
+function buildManagerView(){
+  if(!ALL || ALL.length===0){
+    document.getElementById('mgr-tbody').innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--d);padding:20px">Click Sync to load data</td></tr>';
+    return;
+  }
+  
+  // Use assigned_rm field directly
+  const rmList = [...new Set(ALL.map(p=>(p.assigned_rm||'').trim()).filter(Boolean))].sort();
+  
+  // Summary stats
+  const totalActive = ALL.filter(p=>p.plan_status==='Active').length;
+  const totalWCDone = ALL.filter(p=>p.wc_status==='Done'||p.wc_done==='Done').length;
+  const totalWC = ALL.filter(p=>p.wc_booked==='Yes').length;
+  const totalNoShow = ALL.filter(p=>p.wc_status==='No Show'||p.wc_done==='No Show').length;
+  const totalS1Pending = ALL.filter(p=>{
+    const wcs = p.wc_status||p.wc_done||'';
+    return (wcs==='Done') && (!p.ns1||p.ns1!=='Done') && (!p.ps1||p.ps1!=='Done');
+  }).length;
+  
+  const pct = totalWC>0 ? Math.round(totalWCDone/totalWC*100) : 0;
+  
+  if(document.getElementById('mgr-completion')) document.getElementById('mgr-completion').textContent = pct+'%';
+  if(document.getElementById('mgr-active')) document.getElementById('mgr-active').textContent = totalActive;
+  if(document.getElementById('mgr-noshow')) document.getElementById('mgr-noshow').textContent = totalNoShow;
+  if(document.getElementById('mgr-atrisk')) document.getElementById('mgr-atrisk').textContent = totalS1Pending;
+  
+  const tbody = document.getElementById('mgr-tbody');
+  if(!tbody) return;
+  
+  if(rmList.length===0){
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--d);padding:20px">No RM assignments found in data</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = rmList.map(rm=>{
+    const pts = ALL.filter(p=>(p.assigned_rm||'').trim()===rm);
+    const total = pts.length;
+    const active = pts.filter(p=>p.plan_status==='Active').length;
+    const wcBooked = pts.filter(p=>p.wc_booked==='Yes').length;
+    const wcDone = pts.filter(p=>p.wc_status==='Done'||p.wc_done==='Done').length;
+    const noShow = pts.filter(p=>p.wc_status==='No Show'||p.wc_done==='No Show').length;
+    const coachAssigned = pts.filter(p=>(p.nutritionist||'').trim()||(p.physiotherapist||'').trim()).length;
+    const s1Done = pts.filter(p=>p.ns1==='Done'||p.ps1==='Done').length;
+    const atRisk = pts.filter(p=>{
+      const wcs = p.wc_status||p.wc_done||'';
+      const noComment = !p.c1||p.c1.trim()===''||p.c1==='-';
+      return (wcs==='Done') && (!p.ns1||p.ns1!=='Done') && noComment;
+    }).length;
+    
+    const wcPct = wcBooked>0 ? Math.round(wcDone/wcBooked*100) : 0;
+    const score = total>0 ? Math.round((wcDone*2 + coachAssigned + s1Done)/(total*4)*100) : 0;
+    const scoreCol = score>=80?'var(--G)':score>=60?'#c45000':'var(--R)';
+    const pbarCol = wcPct>=80?'#1a7a3c':wcPct>=60?'#eab308':'#ef4444';
+    
+    return `<tr>
+      <td><b>${rm}</b></td>
+      <td>${active}/${total}</td>
+      <td>${wcDone}</td>
+      <td>
+        ${wcPct}%
+        <div class="mpbar"><div class="mpfill" style="width:${wcPct}%;background:${pbarCol}"></div></div>
+      </td>
+      <td style="color:${noShow>0?'var(--R)':'var(--d)'}">${noShow}</td>
+      <td>${coachAssigned}</td>
+      <td>${s1Done}</td>
+      <td style="color:${atRisk>3?'var(--R)':atRisk>0?'#c45000':'var(--G)'}">${atRisk}</td>
+      <td><b style="color:${scoreCol}">${score}%</b></td>
+    </tr>`;
+  }).join('');
+}
 
 // ── TAB SWITCHING ─────────────────────────────────────────────
 function switchTab(name, el){
