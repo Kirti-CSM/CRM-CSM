@@ -202,6 +202,16 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
 .ubar.on{display:block}
 .ubar-fill{height:100%;background:var(--y);transition:width .3s;width:0}
 .ustatus{font-size:10px;color:var(--s);margin-top:5px;text-align:center;min-height:14px}
+
+.rm-remind{background:#fff8e1;border-bottom:1px solid #f5c400;padding:5px 14px;font-size:10px;font-weight:500;color:#7a4f00;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.rm-remind.sat{background:#fff3e0}
+.rm-chip-wrap{background:#fffdf0;border-bottom:1px solid #ede080;padding:4px 14px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;flex-shrink:0}
+.rm-chip{display:flex;align-items:center;gap:3px;background:#fff;border:1px solid #e8d800;border-radius:10px;padding:2px 7px;font-size:10px;font-weight:500}
+.sum-col{background:#fffdf5;border-left:2px solid #f5c400;font-size:9px;font-weight:500;white-space:nowrap}
+.sum-g{color:#1a7a3c}
+.sum-y{color:#c45000}
+.sum-r{color:#c0392b}
+
 </style>
 </head>
 <body>
@@ -272,6 +282,10 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
   </div>
 </div>
 
+
+<div id="rm-reminder-bar" style="display:none"></div>
+<div id="rm-task-strip" style="display:none"></div>
+
 <div class="rbar">
   <span>Showing <span class="rv" id="rb-n">-</span></span>
   <span>WC Done <span class="rv" style="color:var(--G)" id="rb-wcd">-</span></span>
@@ -294,6 +308,7 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
     <th colspan="8" class="g-fu">&#128203; CS Follow-Up</th>
     <th colspan="3" class="g-cm">&#9998;&#65039; Notes</th>
     <th colspan="1" class="gsep">&#9733;</th>
+    <th colspan="1" class="gsep" style="color:#f5c400">&#128202; Summary</th>
   </tr>
   <tr class="ch">
     <th class="tl">#</th>
@@ -331,6 +346,7 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
     <th class="fu">FU 8</th>
     <th class="cm sep" colspan="3">&#9997; Comment</th>
     <th class="sep">&#9733;</th>
+    <th class="sep" style="background:#fff8e1;color:#7a4f00">&#128202;</th>
   </tr>
   <tr class="vr">
     <td colspan="4" class="nv" style="font-size:9px;color:var(--d);padding-left:8px;text-align:left">&#9660; filters</td>
@@ -356,6 +372,7 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
     <td class="fu sep nv"></td><td class="fu nv"></td><td class="fu nv"></td><td class="fu nv"></td>
     <td class="fu nv"></td><td class="fu nv"></td><td class="fu nv"></td><td class="fu nv"></td>
     <td class="cm sep nv" colspan="3"></td>
+    <td class="sep nv"></td>
     <td class="sep nv"></td>
   </tr>
 </thead>
@@ -859,6 +876,7 @@ function render(){
           onchange="updateComment(${idx},'c1',this.value)">
       </td>
       <td class="sep" onclick="openMod(${idx})">${scoreEl(p)}</td>
+      <td class="sep sum-col" onclick="openMod(${idx})">${patientSummary(p)}</td>
     </tr>`;
   }).join('');
 
@@ -1581,6 +1599,88 @@ setTimeout(()=>{
     }, {passive:true});
   }
 }, 500);
+
+function patientSummary(p){
+  const wcs = p.wc_status||p.wc_done||'';
+  const plan = (p.plan_name||'').toLowerCase();
+  const isGLP = plan.includes('sema')||plan.includes('glp')||plan.includes('semaglyn')||plan.includes('alterme')||plan.includes('mashema');
+  
+  if(wcs==='No Show'||wcs==='No show') return '<span class="sum-col sum-r">🔴 WC reschedule</span>';
+  
+  if(wcs==='Done'||wcs==='done'){
+    const noCoach = !p.nutritionist && !p.physiotherapist;
+    const noSession = (!p.ns1||p.ns1!=='Done') && (!p.ps1||p.ps1!=='Done');
+    const noComment = !p.c1||p.c1.trim()===''||p.c1==='-';
+    
+    if(noCoach) return '<span class="sum-col sum-r">⚠️ Coach not assigned</span>';
+    
+    if(noSession){
+      const wcDate = p.wc_date ? new Date(p.wc_date) : null;
+      if(wcDate){
+        const days = Math.floor((new Date()-wcDate)/86400000);
+        if(days>=10 && noComment) return '<span class="sum-col sum-r">🚨 At risk — churn</span>';
+        if(days>=5) return '<span class="sum-col sum-y">⏳ Session 1 pending</span>';
+      }
+      return '<span class="sum-col sum-y">⏳ Session 1 pending</span>';
+    }
+    
+    if(isGLP && noComment) return '<span class="sum-col sum-y">⚠️ GLP AE check due</span>';
+    
+    return '<span class="sum-col sum-g">✅ On track</span>';
+  }
+  
+  if(p.wc_booked==='Yes'||p.wc_booked==='yes'){
+    return '<span class="sum-col sum-y">⏳ WC not yet done</span>';
+  }
+  
+  if(p.plan_status==='Active'){
+    return '<span class="sum-col sum-y">⏳ WC not booked</span>';
+  }
+  
+  return '<span class="sum-col" style="color:var(--d)">—</span>';
+}
+
+
+function buildRMStrip(){
+  const today = new Date();
+  const day = today.getDay(); // 0=Sun, 1=Mon, 6=Sat
+  
+  // Reminder bar
+  const remBar = document.getElementById('rm-reminder-bar');
+  if(day===1){
+    remBar.style.display='flex';
+    remBar.className='rm-remind';
+    remBar.innerHTML=`<span>&#128203;</span> <b>Monday reminder:</b>&nbsp;Please fill your RM Marketing Tracker for this week. <a href="https://crm-csm.vercel.app" style="margin-left:auto;background:#f5c400;border-radius:3px;padding:2px 10px;font-size:9px;font-weight:600;cursor:pointer;color:#111;text-decoration:none;border:1px solid #d4a800">Fill Now</a>`;
+  } else if(day===6){
+    remBar.style.display='flex';
+    remBar.className='rm-remind sat';
+    remBar.innerHTML=`<span>&#128203;</span> <b>Saturday reminder:</b>&nbsp;Please fill your RM Marketing Tracker before end of day. <a href="https://crm-csm.vercel.app" style="margin-left:auto;background:#f5c400;border-radius:3px;padding:2px 10px;font-size:9px;font-weight:600;cursor:pointer;color:#111;text-decoration:none;border:1px solid #d4a800">Fill Now</a>`;
+  } else {
+    remBar.style.display='none';
+  }
+
+  // RM task strip
+  const strip = document.getElementById('rm-task-strip');
+  const rmList = getRMs();
+  if(!rmList || rmList.length===0){ strip.style.display='none'; return; }
+  
+  const chips = rmList.map(rm=>{
+    const rmPatients = ALL.filter(p=>getRM(p)===rm);
+    const total = rmPatients.length;
+    if(total===0) return '';
+    const done = rmPatients.filter(p=>(p.wc_status==='Done'||p.wc_done==='Done')).length;
+    const pct = total>0?Math.round(done/total*100):0;
+    const col = pct>=90?'#1a7a3c':pct>=60?'#c45000':'#c0392b';
+    return `<div class="rm-chip"><span>${rm}</span><span style="color:${col};margin-left:2px">${pct}%</span></div>`;
+  }).filter(Boolean).join('');
+  
+  if(chips){
+    strip.style.display='flex';
+    strip.className='rm-chip-wrap';
+    strip.innerHTML=`<span style="font-size:9px;color:var(--d);margin-right:2px">Today's RM Tasks:</span>${chips}<span style="margin-left:auto;font-size:9px;color:var(--B);cursor:pointer">Log Tasks &#8594;</span>`;
+  }
+}
+
 </script>
 </body>
 </html>
