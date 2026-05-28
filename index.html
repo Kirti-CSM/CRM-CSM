@@ -213,6 +213,30 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
 .sum-y{color:#c45000}
 .sum-r{color:#c0392b}
 
+
+/* ── TABS ──────────────────────────────── */
+.tab-bar{display:flex;background:#fff;border-bottom:2px solid var(--y);margin-bottom:0}
+.tab-btn{padding:6px 16px;font-size:11px;font-weight:500;color:var(--s);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s}
+.tab-btn.on{color:#111;border-bottom:3px solid var(--y);background:var(--y2)}
+.tab-btn:hover{background:var(--y2)}
+.tab-content{display:none}
+.tab-content.on{display:block}
+
+/* ── MANAGER VIEW ───────────────────────── */
+.mgr-wrap{padding:10px 14px}
+.mgr-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.mgr-card{background:var(--y2);border:1px solid var(--yd);border-radius:6px;padding:8px 10px;text-align:center}
+.mgr-num{font-size:18px;font-weight:700}
+.mgr-label{font-size:9px;color:var(--s);margin-top:2px}
+.mgr-table{width:100%;border-collapse:collapse;font-size:11px}
+.mgr-table th{padding:6px 8px;background:var(--y2);color:var(--s);font-weight:500;border-bottom:1.5px solid var(--y);text-align:left;white-space:nowrap}
+.mgr-table td{padding:6px 8px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+.mgr-table tr:hover td{background:var(--y2)}
+.mpbar{background:#e5e7eb;border-radius:3px;height:5px;overflow:hidden;width:70px;display:inline-block;vertical-align:middle;margin-left:4px}
+.mpfill{height:100%;border-radius:3px}
+.wd{display:flex;gap:2px;margin-top:2px}
+.wdot{width:11px;height:11px;border-radius:2px}
+
 </style>
 </head>
 <body>
@@ -293,6 +317,13 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
   <span>Coach <span class="rv" style="color:var(--B)" id="rb-c">-</span></span>
   <span style="margin-left:auto;font-size:9px;color:var(--d)" id="db-status">&#128994; Connected to Supabase</span>
 </div>
+
+<div class="tab-bar">
+  <div class="tab-btn on" onclick="switchTab('patients',this)">&#128100; Patients</div>
+  <div class="tab-btn" onclick="switchTab('manager',this)">&#128200; Manager View</div>
+</div>
+
+<div id="tab-patients" class="tab-content on">
 
 <div class="main">
 <table>
@@ -379,7 +410,31 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
 </thead>
 <tbody id="tbody"></tbody>
 </table>
+
 </div>
+
+<div id="tab-manager" class="tab-content">
+  <div class="mgr-wrap">
+    <div class="mgr-stats">
+      <div class="mgr-card"><div class="mgr-num" id="mgr-completion" style="color:var(--G)">—</div><div class="mgr-label">Team WC completion</div></div>
+      <div class="mgr-card"><div class="mgr-num" id="mgr-active">—</div><div class="mgr-label">Active patients</div></div>
+      <div class="mgr-card"><div class="mgr-num" id="mgr-noshow" style="color:var(--R)">—</div><div class="mgr-label">WC No Shows</div></div>
+      <div class="mgr-card"><div class="mgr-num" id="mgr-atrisk" style="color:#c45000">—</div><div class="mgr-label">Session 1 pending</div></div>
+    </div>
+    <table class="mgr-table">
+      <thead>
+        <tr>
+          <th>RM</th><th>Patients</th><th>WC Done</th><th>WC %</th><th>No Shows</th><th>Coach Assigned</th><th>Session 1</th><th>At Risk</th><th>Score</th>
+        </tr>
+      </thead>
+      <tbody id="mgr-tbody">
+        <tr><td colspan="9" style="text-align:center;color:var(--d);padding:20px">Click Sync to load data</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:8px;text-align:right;font-size:9px;color:var(--d)">Updates on every Sync</div>
+  </div>
+</div>
+
 
 <div class="foot">
   <div class="ft on" id="ft0" onclick="ftC(0,'all',this)"><div class="fi">&#127758;</div><div class="ft-t"><div class="ft-v" id="ft-tot">-</div><div class="ft-l">Patients</div></div></div>
@@ -1683,6 +1738,84 @@ function buildRMStrip(){
     strip.className='rm-chip-wrap';
     strip.innerHTML=`<span style="font-size:9px;color:var(--d);margin-right:2px">Today's RM Tasks:</span>${chips}<span style="margin-left:auto;font-size:9px;color:var(--B);cursor:pointer">Log Tasks &#8594;</span>`;
   }
+}
+
+
+// ── TAB SWITCHING ─────────────────────────────────────────────
+function switchTab(name, el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('on'));
+  document.getElementById('tab-'+name).classList.add('on');
+  if(el) el.classList.add('on');
+  if(name==='manager') buildManagerView();
+}
+
+// ── MANAGER VIEW ──────────────────────────────────────────────
+function buildManagerView(){
+  if(!ALL || ALL.length===0) return;
+  
+  const rmList = [...new Set(ALL.map(p=>getRM(p)).filter(Boolean))].sort();
+  
+  // Summary stats
+  const totalActive = ALL.filter(p=>p.plan_status==='Active').length;
+  const totalWCDone = ALL.filter(p=>(p.wc_status||p.wc_done)==='Done').length;
+  const totalWC = ALL.filter(p=>p.wc_booked==='Yes'||p.wc_booked==='yes').length;
+  const totalNoShow = ALL.filter(p=>p.wc_status==='No Show'||p.wc_done==='No Show').length;
+  const totalS1Pending = ALL.filter(p=>{
+    const wcs = p.wc_status||p.wc_done||'';
+    return wcs==='Done' && (!p.ns1||p.ns1!=='Done');
+  }).length;
+  
+  const pct = totalWC>0 ? Math.round(totalWCDone/totalWC*100) : 0;
+  
+  document.getElementById('mgr-completion').textContent = pct+'%';
+  document.getElementById('mgr-active').textContent = totalActive;
+  document.getElementById('mgr-noshow').textContent = totalNoShow;
+  document.getElementById('mgr-atrisk').textContent = totalS1Pending;
+  
+  // Per RM table
+  const tbody = document.getElementById('mgr-tbody');
+  
+  if(rmList.length===0){
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--d);padding:20px">No RM data found</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = rmList.map(rm=>{
+    const pts = ALL.filter(p=>getRM(p)===rm);
+    const total = pts.length;
+    const active = pts.filter(p=>p.plan_status==='Active').length;
+    const wcBooked = pts.filter(p=>p.wc_booked==='Yes'||p.wc_booked==='yes').length;
+    const wcDone = pts.filter(p=>(p.wc_status||p.wc_done)==='Done').length;
+    const noShow = pts.filter(p=>p.wc_status==='No Show'||p.wc_done==='No Show').length;
+    const coachAssigned = pts.filter(p=>p.nutritionist||p.physiotherapist).length;
+    const s1Done = pts.filter(p=>p.ns1==='Done'||p.ps1==='Done').length;
+    const atRisk = pts.filter(p=>{
+      const wcs = p.wc_status||p.wc_done||'';
+      const noComment = !p.c1||p.c1.trim()===''||p.c1==='-';
+      return wcs==='Done' && (!p.ns1||p.ns1!=='Done') && noComment;
+    }).length;
+    
+    const wcPct = wcBooked>0 ? Math.round(wcDone/wcBooked*100) : 0;
+    const score = total>0 ? Math.round((wcDone*2 + coachAssigned + s1Done)/(total*4)*100) : 0;
+    const scoreCol = score>=80?'var(--G)':score>=60?'#c45000':'var(--R)';
+    const pbarCol = wcPct>=80?'#1a7a3c':wcPct>=60?'#eab308':'#ef4444';
+    
+    return `<tr>
+      <td><b>${rm}</b></td>
+      <td>${active}/${total}</td>
+      <td>${wcDone}</td>
+      <td>
+        ${wcPct}%
+        <div class="mpbar"><div class="mpfill" style="width:${wcPct}%;background:${pbarCol}"></div></div>
+      </td>
+      <td style="color:${noShow>0?'var(--R)':'var(--d)'}">${noShow}</td>
+      <td>${coachAssigned}</td>
+      <td>${s1Done}</td>
+      <td style="color:${atRisk>3?'var(--R)':atRisk>0?'#c45000':'var(--G)'}">${atRisk}</td>
+      <td><b style="color:${scoreCol}">${score}%</b></td>
+    </tr>`;
+  }).join('');
 }
 
 </script>
