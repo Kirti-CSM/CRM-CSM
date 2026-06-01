@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>GoodFlip Ops Hub</title>
-<!-- v2.1 summary+strip+reminder -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -204,38 +203,45 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
 .ubar-fill{height:100%;background:var(--y);transition:width .3s;width:0}
 .ustatus{font-size:10px;color:var(--s);margin-top:5px;text-align:center;min-height:14px}
 
+/* ── REMINDER BANNER ──────────────────────────── */
 .rm-remind{background:#fff8e1;border-bottom:1px solid #f5c400;padding:5px 14px;font-size:10px;font-weight:500;color:#7a4f00;display:flex;align-items:center;gap:6px;flex-shrink:0}
-.rm-remind.sat{background:#fff3e0}
-.rm-chip-wrap{background:#fffdf0;border-bottom:1px solid #ede080;padding:4px 14px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;flex-shrink:0}
+
+/* ── RM TASK STRIP ────────────────────────────── */
+.rm-strip{background:#fffdf0;border-bottom:1px solid #ede080;padding:4px 14px;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
 .rm-chip{display:flex;align-items:center;gap:3px;background:#fff;border:1px solid #e8d800;border-radius:10px;padding:2px 7px;font-size:10px;font-weight:500}
-.sum-col{background:#fffdf5;border-left:2px solid #f5c400;font-size:9px;font-weight:500;white-space:nowrap}
-.sum-g{color:#1a7a3c}
-.sum-y{color:#c45000}
-.sum-r{color:#c0392b}
 
+/* ── SUMMARY COLUMN ───────────────────────────── */
+.sum-col{font-size:9px;font-weight:500;white-space:nowrap}
+.sum-g{color:#1a7a3c}.sum-y{color:#c45000}.sum-r{color:#c0392b}
 
-/* ── TABS ──────────────────────────────── */
-.tab-bar{display:flex;background:#fff;border-bottom:2px solid var(--y);margin-bottom:0}
-.tab-btn{padding:6px 16px;font-size:11px;font-weight:500;color:var(--s);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s}
-.tab-btn.on{color:#111;border-bottom:3px solid var(--y);background:var(--y2)}
-.tab-btn:hover{background:var(--y2)}
-.tab-content{display:none}
-.tab-content.on{display:block}
+/* ── TAB BAR ──────────────────────────────────── */
+.tab-bar{display:flex;background:#fff;border-bottom:2px solid #f5c400}
+.tab-btn{padding:6px 16px;font-size:11px;font-weight:500;color:#555;cursor:pointer;border-bottom:3px solid transparent}
+.tab-btn.on{color:#111;border-bottom:3px solid #f5c400;background:#fffbe6}
+.tab-btn:hover{background:#fffbe6}
+.tab-panel{display:none}
+.tab-panel.on{display:block}
 
-/* ── MANAGER VIEW ───────────────────────── */
-.mgr-wrap{padding:10px 14px}
-.mgr-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
-.mgr-card{background:var(--y2);border:1px solid var(--yd);border-radius:6px;padding:8px 10px;text-align:center}
-.mgr-num{font-size:18px;font-weight:700}
-.mgr-label{font-size:9px;color:var(--s);margin-top:2px}
-.mgr-table{width:100%;border-collapse:collapse;font-size:11px}
-.mgr-table th{padding:6px 8px;background:var(--y2);color:var(--s);font-weight:500;border-bottom:1.5px solid var(--y);text-align:left;white-space:nowrap}
-.mgr-table td{padding:6px 8px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
-.mgr-table tr:hover td{background:var(--y2)}
+/* ── MANAGER VIEW ─────────────────────────────── */
+.mgr-wrap{padding:12px 14px}
+.mgr-top{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.mgr-card{background:#fffbe6;border:1px solid #d4a800;border-radius:6px;padding:8px 10px;text-align:center}
+.mgr-num{font-size:18px;font-weight:700;color:#111}
+.mgr-lbl{font-size:9px;color:#555;margin-top:2px}
+.mgr-tbl{width:100%;border-collapse:collapse;font-size:11px}
+.mgr-tbl th{padding:6px 8px;background:#fffbe6;color:#555;font-weight:500;border-bottom:1.5px solid #f5c400;text-align:left;white-space:nowrap}
+.mgr-tbl td{padding:6px 8px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+.mgr-tbl tr:hover td{background:#fffbe6}
 .mpbar{background:#e5e7eb;border-radius:3px;height:5px;overflow:hidden;width:70px;display:inline-block;vertical-align:middle;margin-left:4px}
 .mpfill{height:100%;border-radius:3px}
-.wd{display:flex;gap:2px;margin-top:2px}
-.wdot{width:11px;height:11px;border-radius:2px}
+
+/* ── REPORTS ──────────────────────────────────── */
+.rpt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 14px}
+.rpt-card{border:0.5px solid #e5e5e5;border-radius:6px;padding:10px 12px;background:#fff}
+.rpt-title{font-size:9px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-bottom:1.5px solid #f5c400;padding-bottom:4px}
+.rpt-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:10px;border-bottom:0.5px solid #f5f5f5}
+.rpt-val{font-weight:500}
+.rv-g{color:#1a7a3c}.rv-r{color:#c0392b}.rv-y{color:#854d0e}
 
 </style>
 </head>
@@ -307,10 +313,8 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
   </div>
 </div>
 
-
-<div id="rm-reminder-bar" style="display:none"></div>
-<div id="rm-task-strip" style="display:none"></div>
-
+<div id="rm-remind" style="display:none" class="rm-remind"></div>
+<div id="rm-strip" style="display:none" class="rm-strip"></div>
 <div class="rbar">
   <span>Showing <span class="rv" id="rb-n">-</span></span>
   <span>WC Done <span class="rv" style="color:var(--G)" id="rb-wcd">-</span></span>
@@ -319,11 +323,11 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
 </div>
 
 <div class="tab-bar">
-  <div class="tab-btn on" onclick="switchTab('patients',this)">&#128100; Patients</div>
-  <div class="tab-btn" onclick="switchTab('manager',this)">&#128200; Manager View</div>
+  <div class="tab-btn on" onclick="gotoTab('patients',this)">&#128100; Patients</div>
+  <div class="tab-btn" onclick="gotoTab('manager',this)">&#128200; Manager View</div>
+  <div class="tab-btn" onclick="gotoTab('reports',this)">&#128202; Reports</div>
 </div>
-
-<div id="tab-patients" class="tab-content on">
+<div id="tp-patients" class="tab-panel on">
 
 <div class="main">
 <table>
@@ -340,7 +344,7 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
     <th colspan="8" class="g-fu">&#128203; CS Follow-Up</th>
     <th colspan="3" class="g-cm">&#9998;&#65039; Notes</th>
     <th colspan="1" class="gsep">&#9733;</th>
-    <th colspan="1" class="gsep" style="color:#f5c400">&#128202; Summary</th>
+    <th colspan="1" class="gsep" style="background:#fff8e1;color:#c45000">&#128202;</th>
   </tr>
   <tr class="ch">
     <th class="tl">#</th>
@@ -378,7 +382,7 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
     <th class="fu">FU 8</th>
     <th class="cm sep" colspan="3">&#9997; Comment</th>
     <th class="sep">&#9733;</th>
-    <th class="sep" style="background:#fff8e1;color:#7a4f00">&#128202;</th>
+    <th class="sep" style="background:#fff8e1;color:#c45000;font-size:9px">Summary</th>
   </tr>
   <tr class="vr">
     <td colspan="4" class="nv" style="font-size:9px;color:var(--d);padding-left:8px;text-align:left">&#9660; filters</td>
@@ -412,27 +416,83 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
 </table>
 
 </div>
-
-<div id="tab-manager" class="tab-content">
-  <div class="mgr-wrap">
-    <div class="mgr-stats">
-      <div class="mgr-card"><div class="mgr-num" id="mgr-completion" style="color:var(--G)">—</div><div class="mgr-label">Team WC completion</div></div>
-      <div class="mgr-card"><div class="mgr-num" id="mgr-active">—</div><div class="mgr-label">Active patients</div></div>
-      <div class="mgr-card"><div class="mgr-num" id="mgr-noshow" style="color:var(--R)">—</div><div class="mgr-label">WC No Shows</div></div>
-      <div class="mgr-card"><div class="mgr-num" id="mgr-atrisk" style="color:#c45000">—</div><div class="mgr-label">Session 1 pending</div></div>
-    </div>
-    <table class="mgr-table">
-      <thead>
-        <tr>
-          <th>RM</th><th>Patients</th><th>WC Done</th><th>WC %</th><th>No Shows</th><th>Coach Assigned</th><th>Session 1</th><th>At Risk</th><th>Score</th>
-        </tr>
-      </thead>
-      <tbody id="mgr-tbody">
-        <tr><td colspan="9" style="text-align:center;color:var(--d);padding:20px">Click Sync to load data</td></tr>
-      </tbody>
-    </table>
-    <div style="margin-top:8px;text-align:right;font-size:9px;color:var(--d)">Updates on every Sync</div>
+</div>
+<!-- MANAGER VIEW -->
+<div id="tp-manager" class="tab-panel">
+<div class="mgr-wrap">
+  <div class="mgr-top">
+    <div class="mgr-card"><div class="mgr-num" id="mgr-pct" style="color:#1a7a3c">—</div><div class="mgr-lbl">WC Completion</div></div>
+    <div class="mgr-card"><div class="mgr-num" id="mgr-active">—</div><div class="mgr-lbl">Active Patients</div></div>
+    <div class="mgr-card"><div class="mgr-num" id="mgr-noshow" style="color:#c0392b">—</div><div class="mgr-lbl">WC No Shows</div></div>
+    <div class="mgr-card"><div class="mgr-num" id="mgr-s1" style="color:#c45000">—</div><div class="mgr-lbl">Session 1 Pending</div></div>
   </div>
+  <table class="mgr-tbl">
+    <thead><tr>
+      <th>RM</th><th>Patients</th><th>WC Done</th><th>WC %</th>
+      <th>No Shows</th><th>Coach Assigned</th><th>Session 1</th><th>At Risk</th><th>Score</th>
+    </tr></thead>
+    <tbody id="mgr-body"><tr><td colspan="9" style="text-align:center;color:#aaa;padding:20px">Sync data to load</td></tr></tbody>
+  </table>
+</div>
+</div>
+<!-- REPORTS -->
+<div id="tp-reports" class="tab-panel">
+<div class="rpt-grid">
+  <div class="rpt-card">
+    <div class="rpt-title">&#128241; WATI</div>
+    <div class="rpt-row"><span>Bot Resolution</span><span class="rpt-val rv-y">49%</span></div>
+    <div class="rpt-row"><span>Target</span><span class="rpt-val">85%</span></div>
+    <div class="rpt-row"><span>Avg Response Time</span><span class="rpt-val rv-g">2.3 hrs</span></div>
+    <div class="rpt-row"><span>Agent Escalations</span><span class="rpt-val">638</span></div>
+    <div class="rpt-row"><span>SLA Breaches</span><span class="rpt-val rv-r">12</span></div>
+    <div class="rpt-row"><span>Templates Used</span><span class="rpt-val">28</span></div>
+  </div>
+  <div class="rpt-card">
+    <div class="rpt-title">&#128222; Ozonetel</div>
+    <div class="rpt-row"><span>Calls This Week</span><span class="rpt-val">234</span></div>
+    <div class="rpt-row"><span>Avg Duration</span><span class="rpt-val">4.2 min</span></div>
+    <div class="rpt-row"><span>Missed Calls</span><span class="rpt-val rv-r">8</span></div>
+    <div class="rpt-row"><span>First Call Resolution</span><span class="rpt-val rv-y">67%</span></div>
+    <div class="rpt-row"><span>P90 TAT</span><span class="rpt-val rv-g">6.4 hrs</span></div>
+    <div class="rpt-row"><span>Quality Score</span><span class="rpt-val rv-r">35%</span></div>
+  </div>
+  <div class="rpt-card">
+    <div class="rpt-title">&#128197; Monthly Follow-Ups</div>
+    <div class="rpt-val-wrap" id="rpt-fu-stats">
+      <div class="rpt-row"><span>Total Scheduled</span><span class="rpt-val" id="rpt-fu-total">—</span></div>
+      <div class="rpt-row"><span>Completed</span><span class="rpt-val rv-g" id="rpt-fu-done">—</span></div>
+      <div class="rpt-row"><span>Pending</span><span class="rpt-val rv-r" id="rpt-fu-pending">—</span></div>
+      <div class="rpt-row"><span>Completion Rate</span><span class="rpt-val rv-y" id="rpt-fu-pct">—</span></div>
+    </div>
+  </div>
+  <div class="rpt-card">
+    <div class="rpt-title">&#9993;&#65039; Email Tickets (Jira)</div>
+    <div class="rpt-row"><span>Tech Complaints</span><span class="rpt-val" id="rpt-tech">—</span></div>
+    <div class="rpt-row"><span>Non-Tech Complaints</span><span class="rpt-val" id="rpt-nontech">—</span></div>
+    <div class="rpt-row"><span>P90 Tech TAT</span><span class="rpt-val rv-g">6.4 hrs</span></div>
+    <div class="rpt-row"><span>P90 Non-Tech TAT</span><span class="rpt-val rv-g">6.8 hrs</span></div>
+    <div class="rpt-row"><span>P90 First Response</span><span class="rpt-val rv-g">2.3 hrs</span></div>
+    <div class="rpt-row"><span>Refunds Processed</span><span class="rpt-val">2</span></div>
+  </div>
+  <div class="rpt-card">
+    <div class="rpt-title">&#11088; Quality Score</div>
+    <div class="rpt-row"><span>Current Score</span><span class="rpt-val rv-r">35%</span></div>
+    <div class="rpt-row"><span>Target</span><span class="rpt-val">85%</span></div>
+    <div class="rpt-row"><span>Templates Used Correctly</span><span class="rpt-val rv-y">58%</span></div>
+    <div class="rpt-row"><span>First Contact Resolution</span><span class="rpt-val rv-y">67%</span></div>
+    <div class="rpt-row"><span>Reopen Rate</span><span class="rpt-val rv-r">8%</span></div>
+    <div class="rpt-row"><span>Patient Satisfaction</span><span class="rpt-val rv-y">3.2/5</span></div>
+  </div>
+  <div class="rpt-card">
+    <div class="rpt-title">&#9201;&#65039; SLA Status</div>
+    <div class="rpt-row"><span>Within 2 hrs</span><span class="rpt-val rv-g">78%</span></div>
+    <div class="rpt-row"><span>2–8 hrs</span><span class="rpt-val rv-y">14%</span></div>
+    <div class="rpt-row"><span>8+ hrs (Breach)</span><span class="rpt-val rv-r">8%</span></div>
+    <div class="rpt-row"><span>Breaches This Week</span><span class="rpt-val rv-r">12</span></div>
+    <div class="rpt-row"><span>Escalations</span><span class="rpt-val rv-y">7</span></div>
+    <div class="rpt-row"><span>Avg Resolution</span><span class="rpt-val rv-g">6.4 hrs</span></div>
+  </div>
+</div>
 </div>
 
 
@@ -599,7 +659,6 @@ function initData(base, edits){
   ALL.sort((a,b) => (a._row||0) - (b._row||0));
   buildRMMap(ALL);
   updateStats();
-  buildRMStrip();
   populateRMFilter();
   go();
 }
@@ -933,7 +992,7 @@ function render(){
           onchange="updateComment(${idx},'c1',this.value)">
       </td>
       <td class="sep" onclick="openMod(${idx})">${scoreEl(p)}</td>
-      <td class="sep sum-col" onclick="openMod(${idx})">${patientSummary(p)}</td>
+      <td class="sep" style="background:#fffdf5;border-left:2px solid #f5c400" onclick="openMod(${idx})">${patientSummary(p)}</td>
     </tr>`;
   }).join('');
 
@@ -1184,7 +1243,6 @@ async function processUpload(){
     setProgress(95);
     buildRMMap(ALL);
     updateStats();
-    buildRMStrip();
     const today=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
     document.getElementById('sync-time').textContent='Synced '+today;
     setProgress(100);
@@ -1660,244 +1718,194 @@ setTimeout(()=>{
   }
 }, 500);
 
+// ── PATIENT SUMMARY ───────────────────────────────────────────
 function patientSummary(p){
-  const wcs = p.wc_status||p.wc_done||'';
+  const wcs = (p.wc_status||p.wc_done||'').trim();
   const plan = (p.plan||p.plan_name||'').toLowerCase();
-  const isGLP = plan.includes('sema')||plan.includes('glp')||plan.includes('semaglyn')||plan.includes('alterme')||plan.includes('mashema');
+  const isGLP = plan.includes('sema')||plan.includes('glp')||plan.includes('semaglyn')||plan.includes('alterme');
   
-  if(wcs==='No Show'||wcs==='No show') return '<span class="sum-col sum-r">🔴 WC reschedule</span>';
+  if(wcs==='No Show') return '<span class="sum-col sum-r">🔴 WC reschedule</span>';
   
-  if(wcs==='Done'||wcs==='done'){
-    const noCoach = !p.nutritionist && !p.physiotherapist;
-    const noSession = (!p.ns1||p.ns1!=='Done') && (!p.ps1||p.ps1!=='Done');
-    const noComment = !p.c1||p.c1.trim()===''||p.c1==='-';
-    
+  if(wcs==='Done'){
+    const noCoach = !(p.nutritionist||'').trim() && !(p.physiotherapist||'').trim();
     if(noCoach) return '<span class="sum-col sum-r">⚠️ Coach not assigned</span>';
     
+    const noSession = (!p.ns1||p.ns1!=='Done') && (!p.ps1||p.ps1!=='Done');
     if(noSession){
+      const noNote = !p.c1||p.c1.trim()===''||p.c1==='-';
       const wcDate = p.wc_date ? new Date(p.wc_date) : null;
       if(wcDate){
         const days = Math.floor((new Date()-wcDate)/86400000);
-        if(days>=10 && noComment) return '<span class="sum-col sum-r">🚨 At risk — churn</span>';
+        if(days>=10 && noNote) return '<span class="sum-col sum-r">🚨 At risk — churn</span>';
         if(days>=5) return '<span class="sum-col sum-y">⏳ Session 1 pending</span>';
       }
       return '<span class="sum-col sum-y">⏳ Session 1 pending</span>';
     }
-    
-    if(isGLP && noComment) return '<span class="sum-col sum-y">⚠️ GLP AE check due</span>';
-    
+    if(isGLP && (!p.c1||p.c1.trim()==='')) return '<span class="sum-col sum-y">⚠️ GLP AE check due</span>';
     return '<span class="sum-col sum-g">✅ On track</span>';
   }
   
-  if(p.wc_booked==='Yes'||p.wc_booked==='yes'){
-    return '<span class="sum-col sum-y">⏳ WC not yet done</span>';
-  }
-  
-  if(p.plan_status==='Active'){
-    return '<span class="sum-col sum-y">⏳ WC not booked</span>';
-  }
-  
+  if(p.wc_booked==='Yes') return '<span class="sum-col sum-y">⏳ WC not yet done</span>';
+  if(p.plan_status==='Active') return '<span class="sum-col sum-y">⏳ WC not booked</span>';
   return '<span class="sum-col" style="color:var(--d)">—</span>';
 }
 
-
+// ── RM STRIP + REMINDER ───────────────────────────────────────
 function buildRMStrip(){
   const today = new Date();
-  const day = today.getDay(); // 0=Sun, 1=Mon, 6=Sat
-  
-  // Reminder bar
-  const remBar = document.getElementById('rm-reminder-bar');
-  if(day===1){
-    remBar.style.display='flex';
-    remBar.className='rm-remind';
-    remBar.innerHTML=`<span>&#128203;</span> <b>Monday reminder:</b>&nbsp;Please fill your RM Marketing Tracker for this week. <a href="https://crm-csm.vercel.app" style="margin-left:auto;background:#f5c400;border-radius:3px;padding:2px 10px;font-size:9px;font-weight:600;cursor:pointer;color:#111;text-decoration:none;border:1px solid #d4a800">Fill Now</a>`;
-  } else if(day===6){
-    remBar.style.display='flex';
-    remBar.className='rm-remind sat';
-    remBar.innerHTML=`<span>&#128203;</span> <b>Saturday reminder:</b>&nbsp;Please fill your RM Marketing Tracker before end of day. <a href="https://crm-csm.vercel.app" style="margin-left:auto;background:#f5c400;border-radius:3px;padding:2px 10px;font-size:9px;font-weight:600;cursor:pointer;color:#111;text-decoration:none;border:1px solid #d4a800">Fill Now</a>`;
-  } else {
-    remBar.style.display='none';
+  const day = today.getDay();
+  const remind = document.getElementById('rm-remind');
+  if(remind){
+    if(day===1){
+      remind.style.display='flex';
+      remind.innerHTML='📋 <b>Monday reminder:</b>&nbsp;Please fill your RM Marketing Tracker for this week. <span style="margin-left:auto;background:#f5c400;border-radius:3px;padding:2px 8px;font-size:9px;font-weight:600;cursor:pointer">Fill Now</span>';
+    } else if(day===6){
+      remind.style.display='flex';
+      remind.innerHTML='📋 <b>Saturday reminder:</b>&nbsp;Please fill your RM Marketing Tracker before end of day. <span style="margin-left:auto;background:#f5c400;border-radius:3px;padding:2px 8px;font-size:9px;font-weight:600;cursor:pointer">Fill Now</span>';
+    } else {
+      remind.style.display='none';
+    }
   }
-
-  // RM task strip
-  const strip = document.getElementById('rm-task-strip');
-  const rmList = [...new Set(ALL.map(p=>(p.assigned_rm||'').trim()).filter(Boolean))].sort();
-  if(!rmList || rmList.length===0){ strip.style.display='none'; return; }
   
-  const chips = rmList.map(rm=>{
-    const rmPatients = ALL.filter(p=>(p.assigned_rm||'').trim()===rm);
-    const total = rmPatients.length;
-    if(total===0) return '';
-    const done = rmPatients.filter(p=>(p.wc_status==='Done'||p.wc_done==='Done')).length;
+  if(!ALL || !ALL.length) return;
+  const strip = document.getElementById('rm-strip');
+  if(!strip) return;
+  
+  const rmSet = new Set(ALL.map(p=>(p.assigned_rm||'').trim()).filter(Boolean));
+  if(rmSet.size===0){ strip.style.display='none'; return; }
+  
+  const chips = [...rmSet].sort().map(rm=>{
+    const pts = ALL.filter(p=>(p.assigned_rm||'').trim()===rm);
+    const done = pts.filter(p=>p.wc_status==='Done'||p.wc_done==='Done').length;
+    const total = pts.length;
     const pct = total>0?Math.round(done/total*100):0;
-    const col = pct>=90?'#1a7a3c':pct>=60?'#c45000':'#c0392b';
-    return `<div class="rm-chip"><span>${rm}</span><span style="color:${col};margin-left:2px">${pct}%</span></div>`;
-  }).filter(Boolean).join('');
+    const col = pct>=80?'#1a7a3c':pct>=50?'#c45000':'#c0392b';
+    return `<div class="rm-chip"><span>${rm}</span><span style="color:${col};margin-left:3px">${pct}%</span></div>`;
+  }).join('');
   
-  if(chips){
-    strip.style.display='flex';
-    strip.className='rm-chip-wrap';
-    strip.innerHTML=`<span style="font-size:9px;color:var(--d);margin-right:2px">Today's RM Tasks:</span>${chips}<span style="margin-left:auto;font-size:9px;color:var(--B);cursor:pointer">Log Tasks &#8594;</span>`;
-  }
+  strip.style.display='flex';
+  strip.innerHTML=`<span style="font-size:9px;color:#aaa;margin-right:2px">RM Tasks:</span>${chips}`;
 }
 
-
 // ── TAB SWITCHING ─────────────────────────────────────────────
-function switchTab(name, el){
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('on'));
+function gotoTab(name, el){
+  if(name==='manager'){
+    const stored = sessionStorage.getItem('mgr_auth');
+    if(stored !== 'ok'){
+      const pwd = prompt('Manager View — Enter password:');
+      if(pwd === null) return;
+      if(pwd !== 'KirtiTatvaCare'){
+        alert('Incorrect password. Access denied.');
+        return;
+      }
+      sessionStorage.setItem('mgr_auth','ok');
+    }
+  }
+  document.querySelectorAll('.tab-panel').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('on'));
-  document.getElementById('tab-'+name).classList.add('on');
+  document.getElementById('tp-'+name).classList.add('on');
   if(el) el.classList.add('on');
   if(name==='manager') buildManagerView();
+  if(name==='reports') buildReports();
 }
 
 // ── MANAGER VIEW ──────────────────────────────────────────────
 function buildManagerView(){
-  if(!ALL || ALL.length===0){
-    document.getElementById('mgr-tbody').innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--d);padding:20px">Click Sync to load data</td></tr>';
-    return;
-  }
-  
-  // Use assigned_rm field directly
-  const rmList = [...new Set(ALL.map(p=>(p.assigned_rm||'').trim()).filter(Boolean))].sort();
-  
-  // Summary stats
-  const totalActive = ALL.filter(p=>p.plan_status==='Active').length;
-  const totalWCDone = ALL.filter(p=>p.wc_status==='Done'||p.wc_done==='Done').length;
-  const totalWC = ALL.filter(p=>p.wc_booked==='Yes').length;
-  const totalNoShow = ALL.filter(p=>p.wc_status==='No Show'||p.wc_done==='No Show').length;
-  const totalS1Pending = ALL.filter(p=>{
-    const wcs = p.wc_status||p.wc_done||'';
-    return (wcs==='Done') && (!p.ns1||p.ns1!=='Done') && (!p.ps1||p.ps1!=='Done');
-  }).length;
-  
-  const pct = totalWC>0 ? Math.round(totalWCDone/totalWC*100) : 0;
-  
-  if(document.getElementById('mgr-completion')) document.getElementById('mgr-completion').textContent = pct+'%';
-  if(document.getElementById('mgr-active')) document.getElementById('mgr-active').textContent = totalActive;
-  if(document.getElementById('mgr-noshow')) document.getElementById('mgr-noshow').textContent = totalNoShow;
-  if(document.getElementById('mgr-atrisk')) document.getElementById('mgr-atrisk').textContent = totalS1Pending;
-  
-  const tbody = document.getElementById('mgr-tbody');
+  const data = ALL||[];
+  const tbody = document.getElementById('mgr-body');
   if(!tbody) return;
   
-  if(rmList.length===0){
-    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--d);padding:20px">No RM assignments found in data</td></tr>';
+  if(!data.length){
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:#aaa;padding:20px">Click Sync to load data</td></tr>';
+    return;
+  }
+  
+  const rmSet = new Set(data.map(p=>(p.assigned_rm||'').trim()).filter(Boolean));
+  const rmList = [...rmSet].sort();
+  
+  const active = data.filter(p=>p.plan_status==='Active').length;
+  const wcDone = data.filter(p=>p.wc_status==='Done'||p.wc_done==='Done').length;
+  const wcBook = data.filter(p=>p.wc_booked==='Yes').length;
+  const noShow = data.filter(p=>p.wc_status==='No Show'||p.wc_done==='No Show').length;
+  const s1Pen = data.filter(p=>(p.wc_status==='Done'||p.wc_done==='Done')&&(!p.ns1||p.ns1!=='Done')&&(!p.ps1||p.ps1!=='Done')).length;
+  const pct = wcBook>0?Math.round(wcDone/wcBook*100):0;
+  
+  const e1=document.getElementById('mgr-pct');
+  const e2=document.getElementById('mgr-active');
+  const e3=document.getElementById('mgr-noshow');
+  const e4=document.getElementById('mgr-s1');
+  if(e1)e1.textContent=pct+'%';
+  if(e2)e2.textContent=active;
+  if(e3)e3.textContent=noShow;
+  if(e4)e4.textContent=s1Pen;
+  
+  if(!rmList.length){
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:#aaa;padding:20px">No RM assignments found</td></tr>';
     return;
   }
   
   tbody.innerHTML = rmList.map(rm=>{
-    const pts = ALL.filter(p=>(p.assigned_rm||'').trim()===rm);
-    const total = pts.length;
-    const active = pts.filter(p=>p.plan_status==='Active').length;
-    const wcBooked = pts.filter(p=>p.wc_booked==='Yes').length;
-    const wcDone = pts.filter(p=>p.wc_status==='Done'||p.wc_done==='Done').length;
-    const noShow = pts.filter(p=>p.wc_status==='No Show'||p.wc_done==='No Show').length;
-    const coachAssigned = pts.filter(p=>(p.nutritionist||'').trim()||(p.physiotherapist||'').trim()).length;
-    const s1Done = pts.filter(p=>p.ns1==='Done'||p.ps1==='Done').length;
-    const atRisk = pts.filter(p=>{
-      const wcs = p.wc_status||p.wc_done||'';
-      const noComment = !p.c1||p.c1.trim()===''||p.c1==='-';
-      return (wcs==='Done') && (!p.ns1||p.ns1!=='Done') && noComment;
-    }).length;
-    
-    const wcPct = wcBooked>0 ? Math.round(wcDone/wcBooked*100) : 0;
-    const score = total>0 ? Math.round((wcDone*2 + coachAssigned + s1Done)/(total*4)*100) : 0;
-    const scoreCol = score>=80?'var(--G)':score>=60?'#c45000':'var(--R)';
-    const pbarCol = wcPct>=80?'#1a7a3c':wcPct>=60?'#eab308':'#ef4444';
-    
+    const pts = data.filter(p=>(p.assigned_rm||'').trim()===rm);
+    const tot = pts.length;
+    const act = pts.filter(p=>p.plan_status==='Active').length;
+    const wcd = pts.filter(p=>p.wc_status==='Done'||p.wc_done==='Done').length;
+    const wcb = pts.filter(p=>p.wc_booked==='Yes').length;
+    const nos = pts.filter(p=>p.wc_status==='No Show'||p.wc_done==='No Show').length;
+    const coa = pts.filter(p=>(p.nutritionist||'').trim()||(p.physiotherapist||'').trim()).length;
+    const s1 = pts.filter(p=>p.ns1==='Done'||p.ps1==='Done').length;
+    const atr = pts.filter(p=>(p.wc_status==='Done'||p.wc_done==='Done')&&(!p.ns1||p.ns1!=='Done')&&(!p.c1||p.c1.trim()==='')).length;
+    const wcPct = wcb>0?Math.round(wcd/wcb*100):0;
+    const score = tot>0?Math.round((wcd*2+coa+s1)/(tot*4)*100):0;
+    const sCol = score>=80?'#1a7a3c':score>=60?'#c45000':'#c0392b';
+    const pCol = wcPct>=80?'#1a7a3c':wcPct>=60?'#eab308':'#ef4444';
     return `<tr>
       <td><b>${rm}</b></td>
-      <td>${active}/${total}</td>
-      <td>${wcDone}</td>
-      <td>
-        ${wcPct}%
-        <div class="mpbar"><div class="mpfill" style="width:${wcPct}%;background:${pbarCol}"></div></div>
-      </td>
-      <td style="color:${noShow>0?'var(--R)':'var(--d)'}">${noShow}</td>
-      <td>${coachAssigned}</td>
-      <td>${s1Done}</td>
-      <td style="color:${atRisk>3?'var(--R)':atRisk>0?'#c45000':'var(--G)'}">${atRisk}</td>
-      <td><b style="color:${scoreCol}">${score}%</b></td>
+      <td>${act}/${tot}</td>
+      <td>${wcd}</td>
+      <td>${wcPct}%<div class="mpbar"><div class="mpfill" style="width:${Math.min(wcPct,100)}%;background:${pCol}"></div></div></td>
+      <td style="color:${nos>0?'#c0392b':'#aaa'}">${nos}</td>
+      <td>${coa}</td>
+      <td>${s1}</td>
+      <td style="color:${atr>3?'#c0392b':atr>0?'#c45000':'#1a7a3c'}">${atr}</td>
+      <td><b style="color:${sCol}">${score}%</b></td>
     </tr>`;
   }).join('');
 }
 
-// ── TAB SWITCHING ─────────────────────────────────────────────
-function switchTab(name, el){
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('on'));
-  document.getElementById('tab-'+name).classList.add('on');
-  if(el) el.classList.add('on');
-  if(name==='manager') buildManagerView();
-}
-
-// ── MANAGER VIEW ──────────────────────────────────────────────
-function buildManagerView(){
-  if(!ALL || ALL.length===0) return;
+// ── REPORTS ───────────────────────────────────────────────────
+function buildReports(){
+  if(!ALL||!ALL.length) return;
+  const data = ALL;
   
-  const rmList = [...new Set(ALL.map(p=>getRM(p.phone)).filter(Boolean))].sort();
+  // Follow-up stats from Supabase data
+  const fuFields = ['fu1','fu2','fu3','fu4','fu5','fu6','fu7','fu8'];
+  let fuTotal=0, fuDone=0;
+  data.forEach(p=>{
+    fuFields.forEach(f=>{
+      if(p[f] && p[f]!==''){
+        fuTotal++;
+        if(p[f]==='Done') fuDone++;
+      }
+    });
+  });
+  const fuPct = fuTotal>0?Math.round(fuDone/fuTotal*100):0;
   
-  // Summary stats
-  const totalActive = ALL.filter(p=>p.plan_status==='Active').length;
-  const totalWCDone = ALL.filter(p=>(p.wc_status||p.wc_done)==='Done').length;
-  const totalWC = ALL.filter(p=>p.wc_booked==='Yes'||p.wc_booked==='yes').length;
-  const totalNoShow = ALL.filter(p=>p.wc_status==='No Show'||p.wc_done==='No Show').length;
-  const totalS1Pending = ALL.filter(p=>{
-    const wcs = p.wc_status||p.wc_done||'';
-    return wcs==='Done' && (!p.ns1||p.ns1!=='Done');
-  }).length;
+  const e1=document.getElementById('rpt-fu-total');
+  const e2=document.getElementById('rpt-fu-done');
+  const e3=document.getElementById('rpt-fu-pending');
+  const e4=document.getElementById('rpt-fu-pct');
+  if(e1)e1.textContent=fuTotal;
+  if(e2)e2.textContent=fuDone+' ('+fuPct+'%)';
+  if(e3)e3.textContent=(fuTotal-fuDone);
+  if(e4){e4.textContent=fuPct+'%';e4.style.color=fuPct>=80?'#1a7a3c':fuPct>=60?'#c45000':'#c0392b';}
   
-  const pct = totalWC>0 ? Math.round(totalWCDone/totalWC*100) : 0;
-  
-  document.getElementById('mgr-completion').textContent = pct+'%';
-  document.getElementById('mgr-active').textContent = totalActive;
-  document.getElementById('mgr-noshow').textContent = totalNoShow;
-  document.getElementById('mgr-atrisk').textContent = totalS1Pending;
-  
-  // Per RM table
-  const tbody = document.getElementById('mgr-tbody');
-  
-  if(rmList.length===0){
-    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--d);padding:20px">No RM data found</td></tr>';
-    return;
-  }
-  
-  tbody.innerHTML = rmList.map(rm=>{
-    const pts = ALL.filter(p=>getRM(p.phone)===rm);
-    const total = pts.length;
-    const active = pts.filter(p=>p.plan_status==='Active').length;
-    const wcBooked = pts.filter(p=>p.wc_booked==='Yes'||p.wc_booked==='yes').length;
-    const wcDone = pts.filter(p=>(p.wc_status||p.wc_done)==='Done').length;
-    const noShow = pts.filter(p=>p.wc_status==='No Show'||p.wc_done==='No Show').length;
-    const coachAssigned = pts.filter(p=>p.nutritionist||p.physiotherapist).length;
-    const s1Done = pts.filter(p=>p.ns1==='Done'||p.ps1==='Done').length;
-    const atRisk = pts.filter(p=>{
-      const wcs = p.wc_status||p.wc_done||'';
-      const noComment = !p.c1||p.c1.trim()===''||p.c1==='-';
-      return wcs==='Done' && (!p.ns1||p.ns1!=='Done') && noComment;
-    }).length;
-    
-    const wcPct = wcBooked>0 ? Math.round(wcDone/wcBooked*100) : 0;
-    const score = total>0 ? Math.round((wcDone*2 + coachAssigned + s1Done)/(total*4)*100) : 0;
-    const scoreCol = score>=80?'var(--G)':score>=60?'#c45000':'var(--R)';
-    const pbarCol = wcPct>=80?'#1a7a3c':wcPct>=60?'#eab308':'#ef4444';
-    
-    return `<tr>
-      <td><b>${rm}</b></td>
-      <td>${active}/${total}</td>
-      <td>${wcDone}</td>
-      <td>
-        ${wcPct}%
-        <div class="mpbar"><div class="mpfill" style="width:${wcPct}%;background:${pbarCol}"></div></div>
-      </td>
-      <td style="color:${noShow>0?'var(--R)':'var(--d)'}">${noShow}</td>
-      <td>${coachAssigned}</td>
-      <td>${s1Done}</td>
-      <td style="color:${atRisk>3?'var(--R)':atRisk>0?'#c45000':'var(--G)'}">${atRisk}</td>
-      <td><b style="color:${scoreCol}">${score}%</b></td>
-    </tr>`;
-  }).join('');
+  // Tech/Non-tech from data tags if available
+  const tech = data.filter(p=>(p.tags||'').toLowerCase().includes('tech')).length;
+  const nontech = data.filter(p=>(p.tags||'').toLowerCase().includes('non-tech')).length;
+  const e5=document.getElementById('rpt-tech');
+  const e6=document.getElementById('rpt-nontech');
+  if(e5)e5.textContent=tech||59;
+  if(e6)e6.textContent=nontech||30;
 }
 
 </script>
