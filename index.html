@@ -326,7 +326,6 @@ tbody tr:nth-child(even) td.cm{background:#f5f5f0}
   <div class="tab-btn on" onclick="gotoTab('patients',this)">&#128100; Patients</div>
   <div class="tab-btn" onclick="gotoTab('manager',this)">&#128200; Manager View</div>
   <div class="tab-btn" onclick="gotoTab('reports',this)">&#128202; Reports</div>
-  <div class="tab-btn" onclick="gotoTab('cases',this)">&#9888;&#65039; Cases</div>
 </div>
 <div id="tp-patients" class="tab-panel on">
 
@@ -1810,23 +1809,12 @@ function gotoTab(name, el){
       return;
     }
   }
-  if(name==='cases'){
-    const stored = sessionStorage.getItem('mgr_auth');
-    if(stored !== 'ok'){
-      _pendingTab = {name, el};
-      document.getElementById('pwd-modal').dataset.mode='manager';
-      document.getElementById('pwd-modal').style.display='flex';
-      setTimeout(()=>document.getElementById('pwd-input').focus(),100);
-      return;
-    }
-  }
   document.querySelectorAll('.tab-panel').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('on'));
   document.getElementById('tp-'+name).classList.add('on');
   if(el) el.classList.add('on');
   if(name==='manager') buildManagerView();
   if(name==='reports') buildReports();
-  if(name==='cases') renderCases();
 }
 
 // ── MANAGER VIEW ──────────────────────────────────────────────
@@ -1961,194 +1949,4 @@ function submitPwd(){
   }
 }
 
-
-// ── CASES TAB ─────────────────────────────────────────────────
-const CASE_TYPES = ['Mis-Selling','Refund Request','Edge Case','Escalation'];
-const CASE_OWNERSHIP = ['Sales','Sales + CS','Product / Tech','CS','Patient'];
-const CASE_REFUND_STATUS = ['—','Pending','Processed','Rejected'];
-const CASE_PATIENT_STATUS = ['Active','Resolved','Churned'];
-const CASE_FINAL_STATUS = ['Open','In Progress','Closed','Escalated'];
-
-function loadCases(){
-  try { return JSON.parse(localStorage.getItem('crm_cases')||'[]'); }
-  catch(e){ return []; }
-}
-
-function saveCases(cases){
-  localStorage.setItem('crm_cases', JSON.stringify(cases));
-}
-
-function renderCases(){
-  const cases = loadCases();
-  const tbody = document.getElementById('cases-tbody');
-  if(!tbody) return;
-
-  // Summary chips
-  const summary = document.getElementById('cases-summary');
-  if(summary){
-    const counts = {};
-    CASE_TYPES.forEach(t => counts[t]=0);
-    cases.forEach(c => { if(counts[c.case_type]!==undefined) counts[c.case_type]++; });
-    const colors = {'Mis-Selling':'#c0392b','Refund Request':'#c45000','Edge Case':'#1a5276','Escalation':'#6c3483'};
-    summary.innerHTML = Object.entries(counts).map(([t,n])=>
-      `<div style="background:${colors[t]||'#555'};color:#fff;border-radius:10px;padding:2px 10px;font-size:10px;font-weight:500">${t}: ${n}</div>`
-    ).join('') + `<div style="background:var(--N);color:#fff;border-radius:10px;padding:2px 10px;font-size:10px;font-weight:500">Total: ${cases.length}</div>`;
-  }
-
-  if(!cases.length){
-    tbody.innerHTML='<tr><td colspan="15" style="text-align:center;color:var(--d);padding:30px;font-size:12px">No cases logged yet. Click "+ Add Case" to add one.</td></tr>';
-    return;
-  }
-
-  const statusColors = {
-    'Open':'#c0392b','In Progress':'#c45000','Closed':'#1a7a3c','Escalated':'#6c3483',
-    'Processed':'#1a7a3c','Pending':'#c45000','Rejected':'#c0392b',
-    'Active':'#1a7a3c','Resolved':'#1a7a3c','Churned':'#c0392b'
-  };
-
-  function sel(val, opts, key, idx){
-    return `<select onchange="updateCase(${idx},'${key}',this.value)" style="border:0.5px solid #ddd;border-radius:3px;padding:2px 3px;font-size:10px;background:#fff;color:${statusColors[val]||'#111'};font-weight:${statusColors[val]?'600':'400'}">
-      ${opts.map(o=>`<option value="${o}" ${o===val?'selected':''}>${o}</option>`).join('')}
-    </select>`;
-  }
-
-  function txt(val, key, idx, ph=''){
-    return `<input type="text" value="${(val||'').replace(/"/g,'&quot;')}" placeholder="${ph}"
-      onchange="updateCase(${idx},'${key}',this.value)"
-      style="border:0.5px solid #ddd;border-radius:3px;padding:2px 5px;font-size:10px;width:100%;box-sizing:border-box;background:#fff;">`;
-  }
-
-  tbody.innerHTML = cases.map((c,i) => `
-    <tr style="border-bottom:0.5px solid #f0f0f0;background:${i%2===0?'#fff':'var(--y2)'}">
-      <td style="padding:4px 8px;color:var(--d);font-size:10px">${i+1}</td>
-      <td style="padding:4px 6px">${txt(c.patient_name,'patient_name',i,'Name')}</td>
-      <td style="padding:4px 6px">${txt(c.phone,'phone',i,'Phone')}</td>
-      <td style="padding:4px 6px">${sel(c.case_type||'Mis-Selling',CASE_TYPES,'case_type',i)}</td>
-      <td style="padding:4px 6px">${txt(c.sales_person,'sales_person',i,'Sales person')}</td>
-      <td style="padding:4px 6px">${txt(c.date_reported,'date_reported',i,'DD-MM-YYYY')}</td>
-      <td style="padding:4px 6px">${sel(c.ownership||'CS',CASE_OWNERSHIP,'ownership',i)}</td>
-      <td style="padding:4px 6px">${txt(c.issue,'issue',i,'Issue / what was promised')}</td>
-      <td style="padding:4px 6px">${txt(c.cs_action,'cs_action',i,'Action taken')}</td>
-      <td style="padding:4px 6px">${txt(c.refund_amount,'refund_amount',i,'₹ Amount')}</td>
-      <td style="padding:4px 6px">${sel(c.refund_status||'—',CASE_REFUND_STATUS,'refund_status',i)}</td>
-      <td style="padding:4px 6px">${sel(c.patient_status||'Active',CASE_PATIENT_STATUS,'patient_status',i)}</td>
-      <td style="padding:4px 6px">${sel(c.final_status||'Open',CASE_FINAL_STATUS,'final_status',i)}</td>
-      <td style="padding:4px 6px">${txt(c.hocs_notes,'hocs_notes',i,'Head of CS notes')}</td>
-      <td style="padding:4px 8px;text-align:center">
-        <button onclick="deleteCase(${i})" style="background:#fdecea;color:#c0392b;border:0.5px solid #f5c6c6;border-radius:3px;padding:2px 7px;font-size:10px;cursor:pointer">✕</button>
-      </td>
-    </tr>`).join('');
-}
-
-function addCaseRow(){
-  const cases = loadCases();
-  cases.push({
-    patient_name:'', phone:'', case_type:'Mis-Selling',
-    sales_person:'', date_reported: new Date().toLocaleDateString('en-GB'),
-    ownership:'CS', issue:'', cs_action:'',
-    refund_amount:'', refund_status:'—',
-    patient_status:'Active', final_status:'Open', hocs_notes:''
-  });
-  saveCases(cases);
-  renderCases();
-}
-
-function updateCase(idx, key, val){
-  const cases = loadCases();
-  if(cases[idx]) { cases[idx][key] = val; saveCases(cases); renderCases(); }
-}
-
-function deleteCase(idx){
-  if(!confirm('Delete this case?')) return;
-  const cases = loadCases();
-  cases.splice(idx, 1);
-  saveCases(cases);
-  renderCases();
-}
-
-function exportCasesCSV(){
-  const cases = loadCases();
-  if(!cases.length){ alert('No cases to export.'); return; }
-  const headers = ['#','Patient Name','Phone','Case Type','Sales Person','Date Reported','Ownership','Issue / What Was Promised','CS Action Taken','Refund Amount','Refund Status','Patient Status','Final Status','Head of CS Notes'];
-  const rows = cases.map((c,i)=>[i+1,c.patient_name,c.phone,c.case_type,c.sales_person,c.date_reported,c.ownership,c.issue,c.cs_action,c.refund_amount,c.refund_status,c.patient_status,c.final_status,c.hocs_notes].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','));
-  const csv = [headers.join(','), ...rows].join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'GoodFlip_Cases_' + new Date().toLocaleDateString('en-GB').replace(/\//g,'-') + '.csv';
-  a.click();
-}
-
-</script>
-
-<!-- PASSWORD MODAL -->
-<div id="pwd-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(28,43,74,0.7);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:12px;padding:32px 36px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;">
-    <div style="font-size:28px;margin-bottom:8px;">🔒</div>
-    <div style="font-size:16px;font-weight:600;color:#1c2b4a;margin-bottom:4px;">Manager View</div>
-    <div style="font-size:12px;color:#64748b;margin-bottom:20px;">Enter password to continue</div>
-    <div style="position:relative;margin-bottom:16px;">
-      <input id="pwd-input" type="password" placeholder="Password" 
-        style="width:100%;padding:10px 40px 10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;"
-        onkeydown="if(event.key==='Enter')submitPwd()"
-        onfocus="this.style.borderColor='#0b6b5e'"
-        onblur="this.style.borderColor='#e2e8f0'">
-      <span onclick="togglePwdVis()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:16px;" id="pwd-eye">👁</span>
-    </div>
-    <div id="pwd-error" style="color:#dc2626;font-size:11px;margin-bottom:10px;display:none;">Incorrect password. Try again.</div>
-    <div style="display:flex;gap:8px;">
-      <button onclick="closePwdModal()" style="flex:1;padding:9px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;font-size:13px;cursor:pointer;color:#64748b;">Cancel</button>
-      <button onclick="submitPwd()" style="flex:1;padding:9px;border:none;border-radius:8px;background:#1c2b4a;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Enter</button>
-    </div>
-  </div>
-</div>
-
-</body>
-</html
-<!-- CASES TAB -->
-<div id="tp-cases" class="tab-panel">
-<div style="padding:12px 14px">
-
-  <!-- Header row -->
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-    <div style="font-size:13px;font-weight:600;color:var(--N)">Mis-Selling / Escalated / Edge Cases / Refund Cases</div>
-    <div style="font-size:10px;color:var(--d);font-style:italic">Every row originated from Sales / Product / Patient — NOT from CS. Maintained by Head of CS.</div>
-    <div style="margin-left:auto;display:flex;gap:6px;">
-      <button onclick="addCaseRow()" style="background:var(--N);color:#fff;border:none;border-radius:4px;padding:4px 12px;font-size:10px;font-weight:600;cursor:pointer">+ Add Case</button>
-      <button onclick="exportCasesCSV()" style="background:var(--y);border:1px solid var(--yd);border-radius:4px;padding:4px 10px;font-size:10px;font-weight:600;cursor:pointer;color:#111">↓ Export CSV</button>
-    </div>
-  </div>
-
-  <!-- Summary chips -->
-  <div id="cases-summary" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;"></div>
-
-  <!-- Table -->
-  <div style="overflow-x:auto;">
-  <table id="cases-table" style="width:100%;border-collapse:collapse;font-size:10.5px;min-width:1400px;">
-    <thead>
-      <tr style="background:var(--N);color:#fff;">
-        <th style="padding:6px 8px;text-align:left;white-space:nowrap;width:35px">#</th>
-        <th style="padding:6px 8px;text-align:left;white-space:nowrap;min-width:110px">Patient Name</th>
-        <th style="padding:6px 8px;text-align:left;white-space:nowrap;min-width:90px">Phone</th>
-        <th style="padding:6px 8px;text-align:left;white-space:nowrap;min-width:100px">Case Type</th>
-        <th style="padding:6px 8px;text-align:left;white-space:nowrap;min-width:100px">Sales Person</th>
-        <th style="padding:6px 8px;text-align:left;white-space:nowrap;min-width:90px">Date Reported</th>
-        <th style="padding:6px 8px;text-align:left;white-space:nowrap;min-width:100px">Ownership</th>
-        <th style="padding:6px 8px;text-align:left;min-width:180px">Issue / What Was Promised</th>
-        <th style="padding:6px 8px;text-align:left;min-width:160px">CS Action Taken</th>
-        <th style="padding:6px 8px;text-align:left;white-space:nowrap;min-width:90px">Refund Amount</th>
-        <th style="padding:6px 8px;text-align:left;white-space:nowrap;min-width:100px">Refund Status</th>
-        <th style="padding:6px 8px;text-align:left;white-space:nowrap;min-width:90px">Patient Status</th>
-        <th style="padding:6px 8px;text-align:left;white-space:nowrap;min-width:90px">Final Status</th>
-        <th style="padding:6px 8px;text-align:left;min-width:160px">Head of CS Notes</th>
-        <th style="padding:6px 8px;text-align:center;white-space:nowrap;width:60px">Action</th>
-      </tr>
-    </thead>
-    <tbody id="cases-tbody">
-      <tr><td colspan="15" style="text-align:center;color:var(--d);padding:30px;font-size:12px">No cases logged yet. Click "+ Add Case" to add one.</td></tr>
-    </tbody>
-  </table>
-  </div>
-
-</div>
-</div>
 >
